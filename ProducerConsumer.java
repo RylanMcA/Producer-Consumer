@@ -1,16 +1,16 @@
 /*  Name: Rylan McAlister
     UA ID: 010794211    */
 
-import java.util.concurrent.Sempahore;
+import java.util.concurrent.Semaphore;
 import java.util.Random;
 
 //BUFFER CLASS 
-public class Buffer{
+class Buffer{
     final int BUFFER_SIZE = 5;
     int[] buffer;
 
-    Semaphore full = new Sempahore(5);
-    Semapgore empty = new Semaphore(0);
+    Semaphore full = new Semaphore(5);
+    Semaphore empty = new Semaphore(0);
     Semaphore mutex = new Semaphore(1);
 
     public Buffer(){
@@ -31,7 +31,7 @@ public class Buffer{
 }
 
 // PRODUCER CLASS - PUTS NUMBERS INTO THING
-public class Producer extends Thread{
+class Producer extends Thread{
     Random randSleep = new Random();
     Random randInsert = new Random();
     Buffer b;
@@ -39,7 +39,10 @@ public class Producer extends Thread{
     public Producer(Buffer buffer){
         this.b = buffer;
         while(true){
-            Thread.sleep(randSleep.nextInt(500));
+            try{    
+                Thread.sleep(randSleep.nextInt(500)); 
+            }
+            catch(InterruptedException e){}
             int item = randInsert.nextInt();
             if(b.insert(item) == 0){
                 System.out.println("Producer Produced "+item+".");
@@ -52,14 +55,17 @@ public class Producer extends Thread{
 }
 
 //CONSUMER CLASS - TAKES NUMBERS OUT OF THING
-public class Consumer extends Thread{
+class Consumer extends Thread{
     Random rand = new Random();
     Buffer b;
 
     public Consumer(Buffer buffer){
         this.b = buffer;
         while(true){
-            Thread.sleep(rand.nextInt(500));
+            try{    
+                Thread.sleep(rand.nextInt(500)); 
+            }
+            catch(InterruptedException e){}
             int item = b.remove(0);
             if(item == 0){
                 System.out.println("Consumer Consumed"+ item);
@@ -82,18 +88,27 @@ public class ProducerConsumer{
         //Initialize classes and threads
         Buffer buffer = new Buffer();
 
-        for(int i = 0; i < proThreads;i++){
-            Producer p = new Producer();
-            p.start();
 
+        for(int i = 0; i < proThreads;i++){
+            Producer p = new Producer(buffer);
+            p.start();
+            try{
+                p.join();
+            } catch(InterruptedException e){}
         }
 
         for(int i = 0; i < conThreads;i++){
-            Consumer c = new Consumer();
+            Consumer c = new Consumer(buffer);
             c.start();
+            try{
+                c.join();
+            } catch(InterruptedException e){}
         }
 
-        sleep(1000);
+        try{    
+            Thread.sleep(sleepTime*1000); 
+        }
+        catch(InterruptedException e){}
 
     }
 
