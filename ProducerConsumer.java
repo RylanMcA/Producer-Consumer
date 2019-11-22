@@ -67,14 +67,9 @@ class Producer extends Thread{
 
             try{ //Aquire
                 b.empty.acquire();
-            } catch(InterruptedException e){
-                System.out.println("Failed to acquire empty in Producer class");
-            }
-
-            try{ //Aquire
                 b.mutex.acquire();
             } catch(InterruptedException e){
-                System.out.println("Failed to acquire mutex in Producer class");
+                System.out.println("Failed to acquire in Producer class");
             }
 
             //Insert and release
@@ -98,24 +93,20 @@ class Consumer extends Thread{
 
     public void run(){
         for(int x=0;x<100;x++){
-            try{
+            try{ //Sleep
                 sleep(rand.nextInt(501));
             }catch(InterruptedException e){
                 System.out.println("Exception in Consumer Sleeping");
             }
 
-            try{
+            try{ //Acquire 
                 b.full.acquire();
-            } catch (InterruptedException e){
-                System.out.println("Exception in acquireing full in Consumer");
-            }
-
-            try{
                 b.mutex.acquire();
             } catch (InterruptedException e){
-                System.out.println("Exception in acquireing mutex in Consumer");
+                System.out.println("Exception in acquireing in Consumer");
             }
 
+            //Remove and release
             removed = b.remove();
             b.mutex.release();
             b.empty.release();
