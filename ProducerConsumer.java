@@ -68,13 +68,19 @@ class Producer extends Thread{
 
             int item = randInsert.nextInt();
 
-            try{ //Aquire empty sempahore and mutex
+            try{ //Aquire
                 b.empty.acquire();
-                b.mutex.acquire();
             } catch(InterruptedException e){
-                System.out.println("Failed to acquire empty/mutex in Producer class");
+                System.out.println("Failed to acquire empty in Producer class");
             }
 
+            try{ //Aquire
+                b.mutex.acquire();
+            } catch(InterruptedException e){
+                System.out.println("Failed to acquire mutex in Producer class");
+            }
+
+            //Insert and release
             b.insert(item);
             b.mutex.release();
             b.full.release();
@@ -104,9 +110,14 @@ class Consumer extends Thread{
 
             try{
                 b.full.acquire();
+            } catch (InterruptedException e){
+                System.out.println("Exception in acquireing full in Consumer");
+            }
+
+            try{
                 b.mutex.acquire();
             } catch (InterruptedException e){
-                System.out.println("Exception in acquireing full/mutex in Consumer");
+                System.out.println("Exception in acquireing mutex in Consumer");
             }
 
             b.remove();
@@ -120,7 +131,7 @@ class Consumer extends Thread{
 
 
 public class ProducerConsumer{
-    public static void main(String args[]){
+    public static void main(String args[]) throws InterruptedException{
         //Grabbing command line arguements
         int sleepTime = Integer.parseInt(args[0]);
         int proThreads = Integer.parseInt(args[1]);
@@ -129,27 +140,18 @@ public class ProducerConsumer{
         //Initialize classes and threads
         Buffer buffer = new Buffer();
 
-
         for(int i = 0; i < proThreads;i++){
             Producer p = new Producer(buffer);
             p.start();
-            try{
-                p.join();
-            } catch(InterruptedException e){}
         }
 
         for(int i = 0; i < conThreads;i++){
             Consumer c = new Consumer(buffer);
             c.start();
-            try{
-                c.join();
-            } catch(InterruptedException e){}
         }
 
-        try{    
-            Thread.sleep(sleepTime*1000); 
-        }
-        catch(InterruptedException e){}
+        Thread.sleep(sleepTime*1000); 
+        System.exit(0);
 
     }
 
