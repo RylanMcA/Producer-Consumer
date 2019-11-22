@@ -8,7 +8,8 @@ import java.util.Random;
 class Buffer{
     //Declare needed buffer varables 
     final int BUFFER_SIZE = 5;
-    int[] buffer;
+    int[] buffer = new int[5];
+
     int currentPos = 0; //How many slots are open in the buffer
     int outPos = 0; //Position of what comes out next
     int inPos = 0; //Position of what comes in next.
@@ -17,10 +18,6 @@ class Buffer{
     Semaphore full = new Semaphore(5);
     Semaphore empty = new Semaphore(0);
     Semaphore mutex = new Semaphore(1);
-
-    public Buffer(){ //Create the bounded buffer array.
-        this.buffer = new int[this.BUFFER_SIZE];
-    }
 
     //Adds an item to the buffer
     int insert(int item){
@@ -61,7 +58,7 @@ class Producer extends Thread{
     public void run(){
         for(int i=0; i<100;i++){
             try{ 
-                Thread.sleep(randSleep.nextInt(501)); 
+                Thread.sleep(randSleep.nextInt(501));
             } catch(InterruptedException e){
                 System.out.println("Error in Producer sleeping");
             }
@@ -140,6 +137,7 @@ public class ProducerConsumer{
         //Initialize classes and threads
         Buffer buffer = new Buffer();
 
+        //Create consumer/producer threads
         for(int i = 0; i < proThreads;i++){
             Producer p = new Producer(buffer);
             p.start();
@@ -150,9 +148,8 @@ public class ProducerConsumer{
             c.start();
         }
 
+        //Wait for user time and then exit.
         Thread.sleep(sleepTime*1000); 
         System.exit(0);
-
     }
-
 }
