@@ -6,40 +6,39 @@ import java.util.Random;
  
 //BUFFER CLASS 
 class Buffer{
+    //Create semaphores
+    Semaphore full = new Semaphore(0);
+    Semaphore empty = new Semaphore(5);
+    Semaphore mutex = new Semaphore(1);
+
     //Declare needed buffer varables 
     final int BUFFER_SIZE = 5;
     int[] buffer = new int[5];
 
-    int currentPos = 0; //How many slots are open in the buffer
+    int count = 0; //How many slots are open in the buffer
     int outPos = 0; //Position of what comes out next
     int inPos = 0; //Position of what comes in next.
 
-    //Create semaphores
-    Semaphore full = new Semaphore(5);
-    Semaphore empty = new Semaphore(0);
-    Semaphore mutex = new Semaphore(1);
-
     //Adds an item to the buffer
-    int insert(int item){
-        while(currentPos == BUFFER_SIZE){} //No need to do anything if we're full
+    void insert(int item){
+        while(count == BUFFER_SIZE){} //No need to do anything if we're full
 
         //if we're not full
-        currentPos++;
+        count++;
         buffer[inPos] = item;
         inPos = (inPos+1) % BUFFER_SIZE;
         System.out.println("Producer Produced: "+ item);
-        return 0;
     }
 
     //Removes an item form the buffer
     int remove(){
-        while(currentPos == 0){} //No need to do anything if we're empty.
+        while(count == 0){} //No need to do anything if we're empty.
         
         //if we're not empty...
-        currentPos--;
+        count--;
         int consumed = buffer[outPos];
         outPos = (outPos+1) % BUFFER_SIZE;
-        System.out.println("Consumer consumed: "+consumed);
+        System.out.println("             Consumer consumed: "+consumed);
         return consumed;
     }
 
@@ -50,13 +49,14 @@ class Producer extends Thread{
     Random randSleep = new Random();
     Random randInsert = new Random();
     Buffer b;
+    int x=0;
 
     public Producer(Buffer buffer){
         this.b = buffer;
     }
 
     public void run(){
-        for(int i=0; i<100;i++){
+        while(x<100){
             try{ 
                 Thread.sleep(randSleep.nextInt(501));
             } catch(InterruptedException e){
@@ -81,8 +81,7 @@ class Producer extends Thread{
             b.insert(item);
             b.mutex.release();
             b.full.release();
-
-
+            x++;
         } //End of the loop
     } //End of run
 
@@ -92,15 +91,16 @@ class Producer extends Thread{
 class Consumer extends Thread{
     Random rand = new Random();
     Buffer b;
+    int x = 0;
 
     public Consumer(Buffer buffer){
         this.b = buffer;
     }
 
     public void run(){
-        for(int i = 0;i<100;i++){
+        while(x<100){
             try{
-                Thread.sleep(rand.nextInt(501));
+                sleep(rand.nextInt(501));
             }catch(InterruptedException e){
                 System.out.println("Exception in Consumer Sleeping");
             }
@@ -120,6 +120,7 @@ class Consumer extends Thread{
             b.remove();
             b.mutex.release();
             b.full.release();
+            x++;
 
         } //End of loop
  
