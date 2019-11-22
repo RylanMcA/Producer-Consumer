@@ -46,24 +46,24 @@ class Buffer{
 
 // PRODUCER CLASS - PUTS NUMBERS INTO BUFFER
 class Producer extends Thread{
+    int item;
     Random randSleep = new Random();
     Random randInsert = new Random();
     Buffer b;
-    int x=0;
 
     public Producer(Buffer buffer){
         this.b = buffer;
     }
 
     public void run(){
-        while(x<100){
+        for(int x=0;x<100;x++){
             try{ 
                 Thread.sleep(randSleep.nextInt(501));
             } catch(InterruptedException e){
                 System.out.println("Error in Producer sleeping");
             }
 
-            int item = randInsert.nextInt();
+            item = randInsert.nextInt();
 
             try{ //Aquire
                 b.empty.acquire();
@@ -81,7 +81,6 @@ class Producer extends Thread{
             b.insert(item);
             b.mutex.release();
             b.full.release();
-            x++;
         } //End of the loop
     } //End of run
 
@@ -91,14 +90,14 @@ class Producer extends Thread{
 class Consumer extends Thread{
     Random rand = new Random();
     Buffer b;
-    int x = 0;
+    int removed = 0;
 
     public Consumer(Buffer buffer){
         this.b = buffer;
     }
 
     public void run(){
-        while(x<100){
+        for(int x=0;x<100;x++){
             try{
                 sleep(rand.nextInt(501));
             }catch(InterruptedException e){
@@ -117,19 +116,17 @@ class Consumer extends Thread{
                 System.out.println("Exception in acquireing mutex in Consumer");
             }
 
-            b.remove();
+            removed = b.remove();
             b.mutex.release();
-            b.full.release();
-            x++;
+            b.empty.release();
 
         } //End of loop
- 
     }//End of run
 }
 
 
 public class ProducerConsumer{
-    public static void main(String args[]) throws InterruptedException{
+    public static void main(String args[]){
         //Grabbing command line arguements
         int sleepTime = Integer.parseInt(args[0]);
         int proThreads = Integer.parseInt(args[1]);
@@ -150,7 +147,10 @@ public class ProducerConsumer{
         }
 
         //Wait for user time and then exit.
-        Thread.sleep(sleepTime*1000); 
+        try{
+            Thread.sleep(sleepTime*1000); 
+        }catch(InterruptedException e){}
+        
         System.exit(0);
     }
 }
